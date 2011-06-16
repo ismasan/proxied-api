@@ -5,6 +5,13 @@ Bundler.setup(:default, :uploads_api)
 require 'eventmachine'
 require 'eventmachine_httpserver'
 require 'evma_httpserver/response' # weird
+require 'zmq'
+
+CTX = ZMQ::Context.new(1) 
+PUSH = CTX.socket(ZMQ::PUSH)
+PUSH.bind('tcp://127.0.0.1:2200') # instead of bind(), so multiple PUSHs can connect to the same address
+
+trap "INT", proc { CTX.terminate; exit }
 
 class Handler  < EventMachine::Connection
   include EventMachine::HttpServer
@@ -12,18 +19,20 @@ class Handler  < EventMachine::Connection
   def process_http_request
     resp = EventMachine::DelegatedHttpResponse.new( self )
     
-    puts "Uploads handler got request:"
-    puts @http_post_content.inspect
+    puts "Uploads handler got request: sending to ZMQ"
+    # puts @http_post_content.inspect
+    
+    PUSH.send(@http_post_content)
     
     # query our threaded server (max concurrency: 20)
-    http = EM::Protocols::HttpClient.request(
-	    :host => "localhost",
-      :port => 4000,
-      :verb => 'PUT',
-      :request=>"/themes/current",
-      :contenttype => @http_content_type,
-      :content => @http_post_content
-    )
+    # http = EM::Protocols::HttpClient.request(
+    #       :host => "localhost",
+    #       :port => 4000,
+    #       :verb => 'PUT',
+    #       :request=>"/themes/current",
+    #       :contenttype => @http_content_type,
+    #       :content => @http_post_content
+    #     )
     
     resp.status = 200
     resp.content = 'OK!'
@@ -40,7 +49,8 @@ class Handler  < EventMachine::Connection
 end
  
 EventMachine::run {
+  port = ENV['PORT'] || 5000
   EventMachine.epoll
-  EventMachine::start_server("0.0.0.0", 5000, Handler)
-  puts "Listening..."
+  EventMachine::start_server("0.0.0.0", port, Handler)
+  puts "Listening on port #{port}"
 }
