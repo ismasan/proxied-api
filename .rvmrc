@@ -1,0 +1,3 @@
+rvm 1.9.2@bootic --create
+rm ~/.rvm/bin/textmate_ruby
+ln -s ~/.rvm/wrappers/ruby-1.9.2-p180@bootic/ruby ~/.rvm/bin/textmate_ruby

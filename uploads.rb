@@ -1,0 +1,46 @@
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default, :uploads_api)
+
+require 'eventmachine'
+require 'eventmachine_httpserver'
+require 'evma_httpserver/response' # weird
+
+class Handler  < EventMachine::Connection
+  include EventMachine::HttpServer
+ 
+  def process_http_request
+    resp = EventMachine::DelegatedHttpResponse.new( self )
+    
+    puts "Uploads handler got request:"
+    puts @http_post_content.inspect
+    
+    # query our threaded server (max concurrency: 20)
+    http = EM::Protocols::HttpClient.request(
+	    :host => "localhost",
+      :port => 4000,
+      :verb => 'PUT',
+      :request=>"/themes/current",
+      :contenttype => @http_content_type,
+      :content => @http_post_content
+    )
+    
+    resp.status = 200
+    resp.content = 'OK!'
+    resp.send_response
+    
+    # once download is complete, send it to client
+    # http.callback do |r|
+    #       resp.status = 200
+    #       resp.content = r[:content]
+    #       resp.send_response
+    #     end
+ 
+  end
+end
+ 
+EventMachine::run {
+  EventMachine.epoll
+  EventMachine::start_server("0.0.0.0", 5000, Handler)
+  puts "Listening..."
+}
