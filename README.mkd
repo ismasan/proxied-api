@@ -1,0 +1,17 @@
+# Start everything
+
+    foreman start
+    
+# Start many upload workers
+
+    foreman start worker=4
+
+# Proxy listens on :8080
+
+# Proxy to EventMachine uploads server on :5100
+
+RestClient.post 'http://localhost:8080/themes/current', ActiveSupport::Base64.encode64(File.read('/Users/ismasan/Pictures/iChat Icons/Fruit/Orange.gif'))
+
+# Proxy to Sinatra REST API on :4000
+
+RestClient.get 'http://localhost:8080/products/10?callback=p'

@@ -6,7 +6,7 @@ require 'zmq'
 
 ctx = ZMQ::Context.new(1) 
 
-trap "INT", proc { ctx.terminate; exit }
+trap "INT", proc { puts "Terminating context";ctx.terminate; exit }
 
 pull_sock = ctx.socket(ZMQ::PULL)
 # sleep 3

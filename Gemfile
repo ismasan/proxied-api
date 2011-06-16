@@ -19,6 +19,10 @@ group :workers do
   gem 'zmq'
 end
 
+group :proxy do
+  gem 'proxymachine'
+end
+
 group :development do
   gem 'shotgun'
 end

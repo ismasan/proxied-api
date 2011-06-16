@@ -11,7 +11,7 @@ CTX = ZMQ::Context.new(1)
 PUSH = CTX.socket(ZMQ::PUSH)
 PUSH.bind('tcp://127.0.0.1:2200') # instead of bind(), so multiple PUSHs can connect to the same address
 
-trap "INT", proc { CTX.terminate; exit }
+trap "INT", proc { puts "Terminating context"; CTX.terminate; exit }
 
 class Handler  < EventMachine::Connection
   include EventMachine::HttpServer
